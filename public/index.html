@@ -5,60 +5,17 @@
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
-    <meta
-      name="description"
-      content="Web site created using create-react-app"
-    />
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/logo192.png" />
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
 
+    <meta name="google-signin-client_id"
+      content="783652474514-hsrkuk75ikl453pu5fq2nf0m43q3qcsi.apps.googleusercontent.com" />
     <meta name="google-signin-scope" content="profile email">
-		<meta name="google-signin-client_id"
-			content="783652474514-hsrkuk75ikl453pu5fq2nf0m43q3qcsi.apps.googleusercontent.com" />
 
     <title>TinyPet</title>
   </head>
+
   <body>
-    <header>
-      <div class='navbar navbar-dark bg-dark shadow-sm'>
-          <div class='container d-flex justify-content-between'>
-              <h5
-                  style="color: 'white'; margin:'5px'; cursor: pointer"
-                  onclick="backHome()"
-                  className="home-link"
-              >🍹 Home</h5>
-              <div id="my-signin2" class="g-signin2" data-theme="dark"></div>
-          </div>
-      </div>
-    </header>
-
     <div id="root"></div>
-
-    <script>
-      /* Google scripts ↓ */
-      function onSuccess(googleUser) {
-        console.log('Logged in as: ' + googleUser.getBasicProfile().getName());
-      }
-      function onFailure(error) {
-        console.log(error);
-      }
-      function renderButton() {
-        gapi.signin2.render('my-signin2', {
-          'scope': 'profile email',
-          'width': 240,
-          'height': 50,
-          'longtitle': true,
-          'theme': 'dark',
-          'onsuccess': onSuccess,
-          'onfailure': onFailure
-        });
-      }
-
-      function backHome(){
-        window.location = "/"
-      }
-    </script>
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
   </body>
 </html>
