@@ -1,11 +1,13 @@
-import React, {useState} from 'react'
 import './App.css'
 
-import { BrowserRouter as Router, Route, Redirect, Switch } from 'react-router-dom'
+import React, {useState} from 'react'
+
 import { Message } from 'semantic-ui-react'
 
-import Menu from './components/Menu'
 import Header from './components/Header'
+import Menu from './components/Menu'
+
+import PetitionCreator from './components/PetitionCreator'
 import PetitionListing from './components/PetitionListing'
 import PetitionView from './components/PetitionView'
 
@@ -13,35 +15,39 @@ import PetitionView from './components/PetitionView'
 function App() {
 
   const baseBackEndUrl = "https://petitions-31032021.ew.r.appspot.com/_ah/api"
-  // [] means no result in API request
+
+  // [] means no result in API request / null means nothing has been fetched yet
   const [petitions, setPetitions] = useState(null)
+  const [petitionId, setPetitionId] = useState('')
+
   const [nextPageToken, setNextPageToken] = useState("")
   const [lastFetchedURL, setLastFetchedURL] = useState("")
   const [error, setError] = useState("")
+  const [petitionInCreation, setPetitionInCreation] = useState(false)
 
   // Used to know if the user is connected
   const [authToken, setAuthToken] = useState("")
 
-  const fetchAndUpdate = (url) => {
+  const fetchAndUpdate = async(url) => {
       console.log(url)
       fetch(url, {
         headers: new Headers({
           'Authorization': `Bearer ${authToken}`,
           'Content-Type': 'application/json'
-        }),
+        })
       })
-      .then(res => {
-        if (res.status >= 200 && res.status <= 299){
-          setLastFetchedURL(url)
+      .then(res => res.json())
+      .then(json => {
+        let items = []
+        if(json.hasOwnProperty("items")){
+          setPetitions(json.items)
+          items = json.items
+        }else{setPetitions([])}
 
-          let json = res.json()
-          console.log(json)
-          json.hasOwnProperty("items")? setPetitions(json.items) : setPetitions([])
-          json.hasOwnProperty("nextPageToken")? setNextPageToken(json.nextPageToken) : setNextPageToken("")
-
-        }else{
-          setError(`${res.status}: ${res.url}`)
-        }
+        // Google provide a last token leading to an empty result page as last token for pagination
+        // We suppose we only get 10 results by page here
+        json.hasOwnProperty("nextPageToken") && items.length > 9? setNextPageToken(json.nextPageToken) : setNextPageToken("")
+        setLastFetchedURL(url)
       })
       .catch((error) => {setError("error"); console.log(error)})
   }
@@ -50,6 +56,8 @@ function App() {
     <React.Fragment>
       <Header
         setAuthToken={setAuthToken}
+        setPetitionId={setPetitionId}
+        setPetitions={setPetitions}
       />
 
       <div id="content">
@@ -64,44 +72,43 @@ function App() {
           <React.Fragment />
         }
 
-        <Router>
-          <Switch>
-            <Route path = "/" exact>
-              {petitions !== null?
-                <PetitionListing
-                  baseBackEndUrl={baseBackEndUrl}
-
-                  petitions={petitions}
-                  lastFetchedURL={lastFetchedURL}
-                  setPetitions={setPetitions}
-                  nextPageToken={nextPageToken}
-                  setNextPageToken={setNextPageToken}
-
-                  fetchAndUpdate={fetchAndUpdate}
-                />
-                :
-                <Menu
-                  baseBackEndUrl={baseBackEndUrl}
-                  authToken={authToken}
-
-                  setPetitions={setPetitions}
-                  setNextPageToken={setNextPageToken}
-
-                  fetchAndUpdate={fetchAndUpdate}
-                />
-              }
-            </Route>
-
-            <Route path = "/petition/:petitionId" exact>
-              <PetitionView
+        {petitionInCreation?
+          <PetitionCreator />
+          :
+          petitionId !== ""?
+            <PetitionView
+              baseBackEndUrl={baseBackEndUrl}
+              authToken={authToken}
+              petitionId={petitionId}
+              setPetitionId={setPetitionId}
+            />
+            :
+            petitions !== null?
+              <PetitionListing
                 baseBackEndUrl={baseBackEndUrl}
+
+                petitions={petitions}
+                lastFetchedURL={lastFetchedURL}
+                setPetitionId={setPetitionId}
+                setPetitions={setPetitions}
+                nextPageToken={nextPageToken}
+                setNextPageToken={setNextPageToken}
+
+                fetchAndUpdate={fetchAndUpdate}
               />
-            </Route>
+              :
+              <Menu
+                baseBackEndUrl={baseBackEndUrl}
+                authToken={authToken}
 
-            <Redirect to = "/" />
+                setPetitions={setPetitions}
+                setNextPageToken={setNextPageToken}
 
-          </Switch>
-        </Router>
+                setPetitionInCreation={setPetitionInCreation}
+
+                fetchAndUpdate={fetchAndUpdate}
+              />
+          }
       </div>
     </React.Fragment>
   )

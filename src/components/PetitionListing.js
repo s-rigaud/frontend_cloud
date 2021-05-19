@@ -21,7 +21,7 @@ class PetitionListing extends React.Component{
                     {this.props.petitions.map(petition => {
                         return  <Card
                                     key={petition.key.name}
-                                    onClick={() => {window.location = `/petition/${petition.key.name}`}}
+                                    onClick={() => {this.props.setPetitionId(petition.key.name)}}
                                 >
                                     <Card.Content>
                                         <Card.Header>{petition.properties.name}</Card.Header>
@@ -41,6 +41,14 @@ class PetitionListing extends React.Component{
                     :
                     <div/>
                 }
+                <Button
+                    icon
+                    labelPosition='right'
+                    onClick={() => {this.props.setPetitions(null)}}
+                >
+                    Back to menu
+                    <Icon name='arrow left' />
+                </Button>
             </React.Fragment>
             :
             <React.Fragment>

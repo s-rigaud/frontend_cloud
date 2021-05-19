@@ -1,17 +1,18 @@
 import {useState} from 'react'
 
 import { GoogleLogin } from 'react-google-login'
-import { Button, Icon } from 'semantic-ui-react'
+import { Button, Icon, Image } from 'semantic-ui-react'
 
 // Main header of the page
 // It only display usefull infos
 const Header = (props) => {
 
     const [name, setName] = useState("")
+    const [profileURL, setProfileURL] = useState("")
 
     const responseGoogleSuccess = (json) => {
-        console.log(json.tokenObj.access_token)
-        setName(json.At.Ve)
+        setName(json.profileObj.name)
+        setProfileURL(json.profileObj.imageUrl)
         props.setAuthToken(json.tokenObj.access_token)
     }
 
@@ -32,20 +33,27 @@ const Header = (props) => {
                 <div className='container d-flex justify-content-between'>
                     <h5
                         style={{ color: 'white', margin:'5px', cursor: 'pointer'}}
-                        onClick={() => {window.location = "/"}}
+                        onClick={() => {props.setPetitions(null); props.setPetitionId("")}}
                         className="home-link"
                     >🍹 Home</h5>
 
                     {name !== ""?
-                    <Button animated='vertical' onClick={disconnect}>
+                    <Button animated='vertical' onClick={disconnect} style={{padding: "0"}} color="white">
                         <Button.Content
                             hidden
-                            style={{color:'red !important'}}
                         >
                             <Icon name='close' />
                             Disconnect
                         </Button.Content>
-                        <Button.Content visible><Icon name='user outline' />{name}</Button.Content>
+                        <Button.Content visible style={{display: "inline-flex"}}>
+                            <Image
+                                alt='Profile pic'
+                                size='mini'
+                                src={profileURL}
+                                style={{marginRight: "5px"}}
+                            />
+                            <p style={{margin: "auto", fontFamily: "Roboto, sans-serif", fontWeight: "500"}}>{name}</p>
+                        </Button.Content>
                     </Button>
                     :
                     <GoogleLogin

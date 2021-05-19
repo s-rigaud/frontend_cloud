@@ -38,7 +38,6 @@ class Menu extends React.Component{
 
     getAPIEndpoints = () => {
         let endpoints = this.states.unauthEndpoints
-        console.log(this.props.authToken)
         if (this.props.authToken !== "") endpoints = endpoints.concat(this.states.authEndpoints)
         return endpoints
     }
