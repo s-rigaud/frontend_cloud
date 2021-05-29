@@ -15,7 +15,8 @@ class PetitionListing extends React.Component{
 
     render = () => {
         return (
-            this.props.petitions.length?
+            <React.Fragment>
+            {this.props.petitions.length?
             <React.Fragment>
                 <Card.Group>
                     {this.props.petitions.map(petition => {
@@ -41,20 +42,12 @@ class PetitionListing extends React.Component{
                     :
                     <div/>
                 }
-                <Button
-                    icon
-                    labelPosition='right'
-                    onClick={() => {this.props.setPetitions(null)}}
-                >
-                    Back to menu
-                    <Icon name='arrow left' />
-                </Button>
+
             </React.Fragment>
             :
-            <React.Fragment>
-                <p>No petitions found sorry :/</p>
-                <Button onClick={() => {this.props.setPetitions(null)}}>Back to menu</Button>
-            </React.Fragment>
+            <p>No petitions found sorry :/</p>
+            }
+        </React.Fragment>
         )
     }
 }

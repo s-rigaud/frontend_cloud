@@ -2,7 +2,7 @@ import './App.css'
 
 import React, {useState} from 'react'
 
-import { Message } from 'semantic-ui-react'
+import { Breadcrumb, Message } from 'semantic-ui-react'
 
 import Header from './components/Header'
 import Menu from './components/Menu'
@@ -10,6 +10,7 @@ import Menu from './components/Menu'
 import PetitionCreator from './components/PetitionCreator'
 import PetitionListing from './components/PetitionListing'
 import PetitionView from './components/PetitionView'
+import TagFilter from './components/TagFilter'
 
 
 function App() {
@@ -24,12 +25,15 @@ function App() {
   const [lastFetchedURL, setLastFetchedURL] = useState("")
   const [error, setError] = useState("")
   const [petitionInCreation, setPetitionInCreation] = useState(false)
+  const [petitionTagFiltering, setPetitionTagFiltering] = useState(false)
 
+  const [breadcrumb, setBreadcrumb] = useState("")
   // Used to know if the user is connected
   const [authToken, setAuthToken] = useState("")
 
   const fetchAndUpdate = async(url) => {
       console.log(url)
+      setError("")
       fetch(url, {
         headers: new Headers({
           'Authorization': `Bearer ${authToken}`,
@@ -49,16 +53,46 @@ function App() {
         json.hasOwnProperty("nextPageToken") && items.length > 9? setNextPageToken(json.nextPageToken) : setNextPageToken("")
         setLastFetchedURL(url)
       })
-      .catch((error) => {setError("error"); console.log(error)})
+      .catch((error) => {setError(error); console.log(error)})
   }
+
+  const getTagList = async() => {
+    console.log("Retrieve tag list")
+    return ["cookie", "milk"]
+
+    // TODO add backend endpoint
+
+    /*fetch(`${baseBackEndUrl}/petition/tags/list`, {
+      headers: new Headers({
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
+      })
+    })
+    .then(res => res.json())
+    .then(json => {
+      return json.items
+    })
+    .catch((error) => {setError(error); console.log(error)})*/
+}
+
+  const reset = () => {
+    setPetitionId("")
+    setPetitionInCreation(false)
+    setPetitionTagFiltering(false)
+    setPetitions(null)
+    setBreadcrumb("")
+  }
+
+  console.log(authToken)
 
   return (
     <React.Fragment>
       <Header
         setAuthToken={setAuthToken}
-        setPetitionId={setPetitionId}
-        setPetitions={setPetitions}
+        reset={reset}
       />
+
+
 
       <div id="content">
         {error !== ""?
@@ -72,42 +106,65 @@ function App() {
           <React.Fragment />
         }
 
-        {petitionInCreation?
-          <PetitionCreator />
+        {breadcrumb !== ""?
+          <Breadcrumb style={{margin: 'auto', marginBottom: '50px', marginLeft: 'initial'}}>
+            <Breadcrumb.Section link onClick={reset}>Home</Breadcrumb.Section>
+            <Breadcrumb.Divider>/</Breadcrumb.Divider>
+            <Breadcrumb.Section>{breadcrumb}</Breadcrumb.Section>
+          </Breadcrumb>
           :
-          petitionId !== ""?
-            <PetitionView
-              baseBackEndUrl={baseBackEndUrl}
-              authToken={authToken}
-              petitionId={petitionId}
-              setPetitionId={setPetitionId}
-            />
-            :
-            petitions !== null?
-              <PetitionListing
-                baseBackEndUrl={baseBackEndUrl}
+          <React.Fragment />
+        }
 
-                petitions={petitions}
-                lastFetchedURL={lastFetchedURL}
-                setPetitionId={setPetitionId}
-                setPetitions={setPetitions}
-                nextPageToken={nextPageToken}
-                setNextPageToken={setNextPageToken}
+        {petitionInCreation?
+          <PetitionCreator
+            baseBackEndUrl={baseBackEndUrl}
+            authToken={authToken}
+            setPetitionId={setPetitionId}
 
-                fetchAndUpdate={fetchAndUpdate}
-              />
-              :
-              <Menu
-                baseBackEndUrl={baseBackEndUrl}
-                authToken={authToken}
+            reset={reset}
+            fetchAndUpdate={fetchAndUpdate}
+          />
+          :
+        petitionTagFiltering?
+          <TagFilter
+            getTagList={getTagList}
+          />
+          :
+        petitionId !== ""?
+          <PetitionView
+            baseBackEndUrl={baseBackEndUrl}
+            authToken={authToken}
+            petitionId={petitionId}
+            setPetitionId={setPetitionId}
+            setError={setError}
+          />
+          :
+        petitions !== null?
+          <PetitionListing
+            baseBackEndUrl={baseBackEndUrl}
 
-                setPetitions={setPetitions}
-                setNextPageToken={setNextPageToken}
+            petitions={petitions}
+            lastFetchedURL={lastFetchedURL}
+            setPetitionId={setPetitionId}
+            setPetitions={setPetitions}
+            nextPageToken={nextPageToken}
+            setNextPageToken={setNextPageToken}
 
-                setPetitionInCreation={setPetitionInCreation}
+            fetchAndUpdate={fetchAndUpdate}
+            reset={reset}
+          />
+          :
+          <Menu
+            baseBackEndUrl={baseBackEndUrl}
+            authToken={authToken}
 
-                fetchAndUpdate={fetchAndUpdate}
-              />
+            setBreadcrumb={setBreadcrumb}
+            setPetitionInCreation={setPetitionInCreation}
+            setPetitionTagFiltering={setPetitionTagFiltering}
+
+            fetchAndUpdate={fetchAndUpdate}
+          />
           }
       </div>
     </React.Fragment>

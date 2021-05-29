@@ -33,12 +33,12 @@ const Header = (props) => {
                 <div className='container d-flex justify-content-between'>
                     <h5
                         style={{ color: 'white', margin:'5px', cursor: 'pointer'}}
-                        onClick={() => {props.setPetitions(null); props.setPetitionId("")}}
+                        onClick={props.reset}
                         className="home-link"
                     >🍹 Home</h5>
 
                     {name !== ""?
-                    <Button animated='vertical' onClick={disconnect} style={{padding: "0"}} color="white">
+                    <Button animated='vertical' onClick={disconnect} style={{padding: "0"}} >
                         <Button.Content
                             hidden
                         >
@@ -51,6 +51,7 @@ const Header = (props) => {
                                 size='mini'
                                 src={profileURL}
                                 style={{marginRight: "5px"}}
+                                //onFailure={() => console.log("fail loading Google picture")}
                             />
                             <p style={{margin: "auto", fontFamily: "Roboto, sans-serif", fontWeight: "500"}}>{name}</p>
                         </Button.Content>

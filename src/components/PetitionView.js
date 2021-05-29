@@ -5,13 +5,25 @@ import { Button, Card, Label } from 'semantic-ui-react'
 const PetitionView = (props) => {
 
     const [petitionData, setPetitionData] = useState(null)
+    const [alreadySigned, setAlredaySigned] = useState(false)
 
     useEffect(
         () => {
-            fetch(`${props.baseBackEndUrl}/petition?id=${props.petitionId}`)
+            props.setError("")
+            let headers = {'Content-Type': 'application/json'}
+            if(props.authToken !== "") headers['Authorization'] = `Bearer ${props.authToken}`
+
+            fetch(`${props.baseBackEndUrl}/petition?id=${props.petitionId}`,
+                {headers: new Headers(headers)}
+            )
             .then(res => res.json())
-            .then(json => setPetitionData(json))
-        }, [props.petitionId, props.baseBackEndUrl]
+            .then(json => {
+                console.log(json)
+                setPetitionData(json)
+                setAlredaySigned(json.properties.userAlreadySigned)
+            })
+        // also updated when authToken will change
+        }, [props.petitionId, props.baseBackEndUrl, props.authToken, props.setError]
     )
 
     const vote = () => {
@@ -24,11 +36,16 @@ const PetitionView = (props) => {
                 })
             }
         )
+        .then(res => res.json())
+        .then(json => {
+            setPetitionData(json)
+            setAlredaySigned(true)
+        })
     }
 
     const getTagsOrEmptyList = (tags) => {
         // Json return from google could be either undefined / object {"value": ""tag""} / ["tag1", "tag2"]
-        if(!isNaN(tags.length)) return tags // list
+        if(tags !== undefined && !isNaN(tags.length)) return tags // list
         if(tags !== undefined) return [parseInt(tags.value.replace('"', ''))] // object
         return []
     }
@@ -39,6 +56,10 @@ const PetitionView = (props) => {
     const formatDate = (date) => {
         const dateObject = new Date(date)
         return `${zeroPad(dateObject.getDay(), 2)}/${zeroPad(dateObject.getMonth(), 2)}/${dateObject.getFullYear()}`
+    }
+
+    const getButtonText = () => {
+        return props.authToken !== ""? (alreadySigned? "You already voted": "Vote") : "Log in first to become able to vote"
     }
 
     return petitionData !== null?
@@ -59,7 +80,7 @@ const PetitionView = (props) => {
                             <div style={{display: "-webkit-inline-box", marginTop: "35px"}}>
                                 <p style={{marginRight: "10px"}}>Tags : </p>
                                 {getTagsOrEmptyList(petitionData.properties.tags).map(tag => {
-                                    return <Label color='blue'>{tag}</Label>
+                                    return <Label color='blue' key={tag}>{`#${tag}`}</Label>
                                 })}
                             </div>
                         </Card.Description>
@@ -70,8 +91,8 @@ const PetitionView = (props) => {
                                 <Button
                                     positive={props.authToken !== ""}
                                     onClick={vote}
-                                    disabled={props.authToken === ""}
-                                >{props.authToken !== ""? "Vote" : "Log in first to become able to vote"}</Button>
+                                    disabled={props.authToken === "" || alreadySigned}
+                                >{getButtonText()}</Button>
                             </div>
                         </Card.Content>
                 </Card>
