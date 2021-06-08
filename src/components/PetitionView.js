@@ -9,9 +9,9 @@ const PetitionView = (props) => {
 
     useEffect(
         () => {
-            props.setError("")
+            props.setError('')
             let headers = {'Content-Type': 'application/json'}
-            if(props.authToken !== "") headers['Authorization'] = `Bearer ${props.authToken}`
+            if(props.authToken !== '') headers['Authorization'] = `Bearer ${props.authToken}`
 
             fetch(`${props.baseBackEndUrl}/petition?id=${props.petitionId}`,
                 {headers: new Headers(headers)}
@@ -59,7 +59,7 @@ const PetitionView = (props) => {
     }
 
     const getButtonText = () => {
-        return props.authToken !== ""? (alreadySigned? "You already voted": "Vote") : "Log in first to become able to vote"
+        return props.authToken !== ''? (alreadySigned? 'You already voted': 'Vote') : 'Log in first to become able to vote'
     }
 
     return petitionData !== null?
@@ -68,7 +68,7 @@ const PetitionView = (props) => {
                     key={petitionData.key.name}
                 >
                     <Card.Content>
-                        <Card.Header style={{margin: "10px"}}>{petitionData.properties.name}</Card.Header>
+                        <Card.Header style={{margin: '10px'}}>{petitionData.properties.name}</Card.Header>
                         <Card.Meta>
                             <span className='date' >
                                 <p>Created by {petitionData.properties.owner}</p>
@@ -77,8 +77,8 @@ const PetitionView = (props) => {
                         </Card.Meta>
                         <Card.Description>
                             <p>{petitionData.properties.content}</p>
-                            <div style={{display: "-webkit-inline-box", marginTop: "35px"}}>
-                                <p style={{marginRight: "10px"}}>Tags : </p>
+                            <div style={{ marginTop: '35px' }}>
+                                <p style={{ marginRight: '10px' }}>Tags</p>
                                 {getTagsOrEmptyList(petitionData.properties.tags).map(tag => {
                                     return <Label color='blue' key={tag}>{`#${tag}`}</Label>
                                 })}
@@ -89,14 +89,14 @@ const PetitionView = (props) => {
                             <p>Currently signed {petitionData.properties.votes} times</p>
                             <div className='ui two buttons'>
                                 <Button
-                                    positive={props.authToken !== ""}
+                                    positive={props.authToken !== ''}
                                     onClick={vote}
-                                    disabled={props.authToken === "" || alreadySigned}
+                                    disabled={props.authToken === '' || alreadySigned}
                                 >{getButtonText()}</Button>
                             </div>
                         </Card.Content>
                 </Card>
-                <Button onClick={() => {props.setPetitionId("")}}>Back to listing</Button>
+                <Button onClick={() => {props.setPetitionId('')}}>Back</Button>
             </React.Fragment>
             :
             <div>Loading</div>

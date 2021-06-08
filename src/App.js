@@ -9,31 +9,29 @@ import Menu from './components/Menu'
 
 import PetitionCreator from './components/PetitionCreator'
 import PetitionListing from './components/PetitionListing'
-import PetitionView from './components/PetitionView'
 import TagFilter from './components/TagFilter'
 
 
 function App() {
 
-  const baseBackEndUrl = "https://petitions-31032021.ew.r.appspot.com/_ah/api"
+  const baseBackEndUrl = 'https://petitions-31032021.ew.r.appspot.com/_ah/api'
 
   // [] means no result in API request / null means nothing has been fetched yet
   const [petitions, setPetitions] = useState(null)
-  const [petitionId, setPetitionId] = useState('')
 
-  const [nextPageToken, setNextPageToken] = useState("")
-  const [lastFetchedURL, setLastFetchedURL] = useState("")
-  const [error, setError] = useState("")
+  const [nextPageToken, setNextPageToken] = useState('')
+  const [lastFetchedURL, setLastFetchedURL] = useState('')
+  const [error, setError] = useState('')
   const [petitionInCreation, setPetitionInCreation] = useState(false)
   const [petitionTagFiltering, setPetitionTagFiltering] = useState(false)
 
-  const [breadcrumb, setBreadcrumb] = useState("")
+  const [breadcrumb, setBreadcrumb] = useState('')
   // Used to know if the user is connected
-  const [authToken, setAuthToken] = useState("")
+  const [authToken, setAuthToken] = useState('')
 
   const fetchAndUpdate = async(url) => {
       console.log(url)
-      setError("")
+      setError('')
       fetch(url, {
         headers: new Headers({
           'Authorization': `Bearer ${authToken}`,
@@ -43,26 +41,23 @@ function App() {
       .then(res => res.json())
       .then(json => {
         let items = []
-        if(json.hasOwnProperty("items")){
+        if(json.hasOwnProperty('items')){
           setPetitions(json.items)
           items = json.items
         }else{setPetitions([])}
 
         // Google provide a last token leading to an empty result page as last token for pagination
         // We suppose we only get 10 results by page here
-        json.hasOwnProperty("nextPageToken") && items.length > 9? setNextPageToken(json.nextPageToken) : setNextPageToken("")
+        json.hasOwnProperty('nextPageToken') && items.length > 9? setNextPageToken(json.nextPageToken) : setNextPageToken('')
         setLastFetchedURL(url)
       })
       .catch((error) => {setError(error); console.log(error)})
   }
 
-  const getTagList = async() => {
-    console.log("Retrieve tag list")
-    return ["cookie", "milk"]
+  const getTagList = async(callbackHook) => {
+    console.log('Retrieve tag list')
 
-    // TODO add backend endpoint
-
-    /*fetch(`${baseBackEndUrl}/petition/tags/list`, {
+    fetch(`${baseBackEndUrl}/petitions/tags/list`, {
       headers: new Headers({
         'Authorization': `Bearer ${authToken}`,
         'Content-Type': 'application/json'
@@ -70,17 +65,18 @@ function App() {
     })
     .then(res => res.json())
     .then(json => {
-      return json.items
+      callbackHook(json.items)
     })
-    .catch((error) => {setError(error); console.log(error)})*/
-}
+    .catch((error) => {setError(error); console.log(error)})
+  }
 
   const reset = () => {
-    setPetitionId("")
     setPetitionInCreation(false)
     setPetitionTagFiltering(false)
     setPetitions(null)
-    setBreadcrumb("")
+
+    setBreadcrumb('')
+    setError('')
   }
 
   console.log(authToken)
@@ -92,10 +88,9 @@ function App() {
         reset={reset}
       />
 
+      <div id='content'>
 
-
-      <div id="content">
-        {error !== ""?
+        {error !== ''?
           <Message
             negative
             icon='inbox'
@@ -106,7 +101,7 @@ function App() {
           <React.Fragment />
         }
 
-        {breadcrumb !== ""?
+        {breadcrumb !== ''?
           <Breadcrumb style={{margin: 'auto', marginBottom: '50px', marginLeft: 'initial'}}>
             <Breadcrumb.Section link onClick={reset}>Home</Breadcrumb.Section>
             <Breadcrumb.Divider>/</Breadcrumb.Divider>
@@ -119,42 +114,22 @@ function App() {
         {petitionInCreation?
           <PetitionCreator
             baseBackEndUrl={baseBackEndUrl}
-            authToken={authToken}
-            setPetitionId={setPetitionId}
 
-            reset={reset}
+            authToken={authToken}
+            setError={setError}
+
             fetchAndUpdate={fetchAndUpdate}
+            getTagList={getTagList}
           />
           :
         petitionTagFiltering?
           <TagFilter
+            baseBackEndUrl={baseBackEndUrl}
+            fetchAndUpdate={fetchAndUpdate}
             getTagList={getTagList}
           />
           :
-        petitionId !== ""?
-          <PetitionView
-            baseBackEndUrl={baseBackEndUrl}
-            authToken={authToken}
-            petitionId={petitionId}
-            setPetitionId={setPetitionId}
-            setError={setError}
-          />
-          :
-        petitions !== null?
-          <PetitionListing
-            baseBackEndUrl={baseBackEndUrl}
-
-            petitions={petitions}
-            lastFetchedURL={lastFetchedURL}
-            setPetitionId={setPetitionId}
-            setPetitions={setPetitions}
-            nextPageToken={nextPageToken}
-            setNextPageToken={setNextPageToken}
-
-            fetchAndUpdate={fetchAndUpdate}
-            reset={reset}
-          />
-          :
+        petitions === null?
           <Menu
             baseBackEndUrl={baseBackEndUrl}
             authToken={authToken}
@@ -165,7 +140,29 @@ function App() {
 
             fetchAndUpdate={fetchAndUpdate}
           />
-          }
+          :
+          <React.Fragment />
+        }
+
+
+        {petitions !== null?
+          <PetitionListing
+            baseBackEndUrl={baseBackEndUrl}
+
+            authToken={authToken}
+            petitions={petitions}
+            lastFetchedURL={lastFetchedURL}
+            setPetitions={setPetitions}
+            nextPageToken={nextPageToken}
+            setNextPageToken={setNextPageToken}
+            setError={setError}
+
+            fetchAndUpdate={fetchAndUpdate}
+            reset={reset}
+          />
+          :
+          <React.Fragment />
+        }
       </div>
     </React.Fragment>
   )

@@ -7,8 +7,8 @@ import { Button, Icon, Image } from 'semantic-ui-react'
 // It only display usefull infos
 const Header = (props) => {
 
-    const [name, setName] = useState("")
-    const [profileURL, setProfileURL] = useState("")
+    const [name, setName] = useState('')
+    const [profileURL, setProfileURL] = useState('')
 
     const responseGoogleSuccess = (json) => {
         setName(json.profileObj.name)
@@ -17,12 +17,12 @@ const Header = (props) => {
     }
 
     const responseGoogleFailure = (response) => {
-        console.log(response)
+        alert(response)
     }
 
     const disconnect = () => {
-        setName("")
-        props.setAuthToken("")
+        setName('')
+        props.setAuthToken('')
     }
 
     return (
@@ -34,35 +34,39 @@ const Header = (props) => {
                     <h5
                         style={{ color: 'white', margin:'5px', cursor: 'pointer'}}
                         onClick={props.reset}
-                        className="home-link"
+                        className='home-link'
                     >🍹 Home</h5>
 
-                    {name !== ""?
-                    <Button animated='vertical' onClick={disconnect} style={{padding: "0"}} >
+                    {name !== ''?
+                    <Button animated='vertical' onClick={disconnect} style={{padding: '0'}} >
                         <Button.Content
                             hidden
                         >
                             <Icon name='close' />
                             Disconnect
                         </Button.Content>
-                        <Button.Content visible style={{display: "inline-flex"}}>
+                        <Button.Content visible style={{display: 'inline-flex'}}>
                             <Image
                                 alt='Profile pic'
                                 size='mini'
                                 src={profileURL}
-                                style={{marginRight: "5px"}}
-                                //onFailure={() => console.log("fail loading Google picture")}
+                                style={{marginRight: '5px'}}
+                                //onFailure={() => console.log('fail loading Google picture')}
                             />
-                            <p style={{margin: "auto", fontFamily: "Roboto, sans-serif", fontWeight: "500"}}>{name}</p>
+                            <p style={{margin: 'auto', fontFamily: 'Roboto, sans-serif', fontWeight: '500'}}>{name}</p>
                         </Button.Content>
                     </Button>
                     :
                     <GoogleLogin
-                        clientId="783652474514-hsrkuk75ikl453pu5fq2nf0m43q3qcsi.apps.googleusercontent.com"
-                        buttonText="Login"
+                        clientId='783652474514-hsrkuk75ikl453pu5fq2nf0m43q3qcsi.apps.googleusercontent.com'
+                        buttonText='Login'
                         onSuccess={responseGoogleSuccess}
                         onFailure={responseGoogleFailure}
                         cookiePolicy={'single_host_origin'}
+                        /*accessType='offline'
+                        responseType='code'
+                        approvalPrompt='force'
+                        prompt='consent'*/
                     />
                     }
                 </div>
