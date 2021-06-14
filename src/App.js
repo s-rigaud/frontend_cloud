@@ -1,61 +1,93 @@
 import './App.css'
 
-import React, {useState} from 'react'
+import React, { useState } from 'react'
 
-import { Breadcrumb, Message } from 'semantic-ui-react'
+import { Message } from 'semantic-ui-react'
 
+import Home from './components/Home'
 import Header from './components/Header'
-import Menu from './components/Menu'
-
 import PetitionCreator from './components/PetitionCreator'
 import PetitionListing from './components/PetitionListing'
-import TagFilter from './components/TagFilter'
+import Profile from './components/Profile'
 
 
 function App() {
 
   const baseBackEndUrl = 'https://petitions-31032021.ew.r.appspot.com/_ah/api'
 
-  // [] means no result in API request / null means nothing has been fetched yet
-  const [petitions, setPetitions] = useState(null)
-
   const [nextPageToken, setNextPageToken] = useState('')
+  const [lastPageToken, setLastPageToken] = useState('')
   const [lastFetchedURL, setLastFetchedURL] = useState('')
-  const [error, setError] = useState('')
-  const [petitionInCreation, setPetitionInCreation] = useState(false)
-  const [petitionTagFiltering, setPetitionTagFiltering] = useState(false)
 
-  const [breadcrumb, setBreadcrumb] = useState('')
+  const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('Home')
+
   // Used to know if the user is connected
   const [authToken, setAuthToken] = useState('')
+  const [profileInfo, setProfileInfo] = useState('')
 
-  const fetchAndUpdate = async(url) => {
-      console.log(url)
-      setError('')
-      fetch(url, {
-        headers: new Headers({
-          'Authorization': `Bearer ${authToken}`,
-          'Content-Type': 'application/json'
-        })
+  const [filterWords, setFilterWords] = useState('')
+
+  const ENDPOINTS = {
+    create: {
+      url: `${baseBackEndUrl}/petitions`,
+    },
+    created: {
+      url: `${baseBackEndUrl}/me/petitions`,
+    },
+    filtered: {
+      url: `${baseBackEndUrl}/petiton/filter`,
+    },
+    popular: {
+      url: `${baseBackEndUrl}/petitions/top10`,
+    },
+    signed: {
+      url: `${baseBackEndUrl}/me/signature`,
+    },
+  }
+
+  const fetchAndUpdate = async (url, callBackFunction) => {
+    console.log(url)
+    setError('')
+    fetch(url, {
+      headers: new Headers({
+        'Authorization': `Bearer ${authToken}`,
+        'Content-Type': 'application/json'
       })
+    })
       .then(res => res.json())
       .then(json => {
-        let items = []
-        if(json.hasOwnProperty('items')){
-          setPetitions(json.items)
-          items = json.items
-        }else{setPetitions([])}
+        setLastFetchedURL(url)
+
+        console.log(json)
+        if (json.hasOwnProperty('items')) {
+          callBackFunction(json.items.map(pet => [
+            pet.key.name,
+            pet.properties.content,
+            pet.properties.created_at,
+            pet.properties.name,
+            pet.properties.owner,
+            pet.properties.votes,
+            pet.properties.tags,
+            pet.properties.alreadySigned,
+          ]))
+        } else { callBackFunction([]) }
 
         // Google provide a last token leading to an empty result page as last token for pagination
         // We suppose we only get 10 results by page here
-        json.hasOwnProperty('nextPageToken') && items.length > 9? setNextPageToken(json.nextPageToken) : setNextPageToken('')
-        setLastFetchedURL(url)
+        if (json.hasOwnProperty('nextPageToken') && json.items.length > 9) {
+          setNextPageToken(json.nextPageToken)
+          console.log('last ', lastPageToken);
+          console.log('next ', nextPageToken);
+        } else {
+          setNextPageToken('')
+        }
+
       })
-      .catch((error) => {setError(error); console.log(error)})
+      .catch((error) => { setError(error); console.log(error) })
   }
 
-  const getTagList = async(callbackHook) => {
-    console.log('Retrieve tag list')
+  const getTagList = async (callbackHook) => {
 
     fetch(`${baseBackEndUrl}/petitions/tags/list`, {
       headers: new Headers({
@@ -63,106 +95,130 @@ function App() {
         'Content-Type': 'application/json'
       })
     })
-    .then(res => res.json())
-    .then(json => {
-      callbackHook(json.items)
-    })
-    .catch((error) => {setError(error); console.log(error)})
+      .then(res => res.json())
+      .then(json => {
+        callbackHook(json.items)
+      })
+      .catch((error) => { setError(error); console.log(error) })
+  }
+
+
+  const updateSearchTag = (string) => {
+    if (string.length > 2) {
+      setFilterWords(string)
+      setActiveTab("Filter")
+    } else if(string.length == 0){
+      setActiveTab("Home")
+    }
   }
 
   const reset = () => {
-    setPetitionInCreation(false)
-    setPetitionTagFiltering(false)
-    setPetitions(null)
-
-    setBreadcrumb('')
     setError('')
+    setFilterWords('')
   }
 
-  console.log(authToken)
+  // console.log("token ", authToken)
 
   return (
     <React.Fragment>
       <Header
+        profileInfo={profileInfo}
         setAuthToken={setAuthToken}
+        setProfileInfo={setProfileInfo}
+        setActiveTab={setActiveTab}
+        updateSearchTag={updateSearchTag}
+
         reset={reset}
       />
 
       <div id='content'>
 
-        {error !== ''?
+        {error !== '' ?
           <Message
             negative
             icon='inbox'
             header='Sorry an error happened'
             content={error}
           />
-        :
-          <React.Fragment />
-        }
-
-        {breadcrumb !== ''?
-          <Breadcrumb style={{margin: 'auto', marginBottom: '50px', marginLeft: 'initial'}}>
-            <Breadcrumb.Section link onClick={reset}>Home</Breadcrumb.Section>
-            <Breadcrumb.Divider>/</Breadcrumb.Divider>
-            <Breadcrumb.Section>{breadcrumb}</Breadcrumb.Section>
-          </Breadcrumb>
           :
           <React.Fragment />
         }
 
-        {petitionInCreation?
-          <PetitionCreator
-            baseBackEndUrl={baseBackEndUrl}
-
-            authToken={authToken}
-            setError={setError}
-
-            fetchAndUpdate={fetchAndUpdate}
-            getTagList={getTagList}
+        {activeTab === 'Profile' ?
+          <Profile
+            profileInfo={profileInfo}
+            setActiveTab={setActiveTab}
           />
           :
-        petitionTagFiltering?
-          <TagFilter
-            baseBackEndUrl={baseBackEndUrl}
-            fetchAndUpdate={fetchAndUpdate}
-            getTagList={getTagList}
-          />
-          :
-        petitions === null?
-          <Menu
-            baseBackEndUrl={baseBackEndUrl}
-            authToken={authToken}
+          activeTab === 'Create' ?
+            <PetitionCreator
+              authToken={authToken}
+              url={ENDPOINTS.create.url}
 
-            setBreadcrumb={setBreadcrumb}
-            setPetitionInCreation={setPetitionInCreation}
-            setPetitionTagFiltering={setPetitionTagFiltering}
+              getTagList={getTagList}
+              setActiveTab={setActiveTab}
 
-            fetchAndUpdate={fetchAndUpdate}
-          />
-          :
-          <React.Fragment />
+            />
+            :
+            activeTab === 'Created' ?
+              <PetitionListing
+                baseBackEndUrl={baseBackEndUrl}
+                authToken={authToken}
+                lastFetchedURL={lastFetchedURL}
+                nextPageToken={nextPageToken}
+                lastPageToken={lastPageToken}
+
+                url={ENDPOINTS.created.url}
+                title="Pétitions que j'ai créé"
+                profileInfo={profileInfo}
+
+                fetchAndUpdate={fetchAndUpdate}
+                setLastPageToken={setLastPageToken}
+              />
+              :
+              activeTab === 'Signed' ?
+                <PetitionListing
+                  baseBackEndUrl={baseBackEndUrl}
+                  authToken={authToken}
+                  lastFetchedURL={lastFetchedURL}
+                  nextPageToken={nextPageToken}
+                  lastPageToken={lastPageToken}
+
+                  url={ENDPOINTS.signed.url}
+                  title="Pétitions que j'ai signé"
+                  profileInfo={profileInfo}
+
+                  fetchAndUpdate={fetchAndUpdate}
+                  setLastPageToken={setLastPageToken}
+                />
+                :
+                activeTab === 'Filter' ?
+                  <PetitionListing
+                    baseBackEndUrl={baseBackEndUrl}
+                    authToken={authToken}
+                    lastFetchedURL={lastFetchedURL}
+                    nextPageToken=''
+                    lastPageToken=''
+
+                    url={`${ENDPOINTS.filtered.url}?text=${filterWords}`}
+                    title="Pétitions filtrées"
+                    profileInfo={profileInfo}
+
+                    fetchAndUpdate={fetchAndUpdate}
+                    setLastPageToken={setLastPageToken}
+                  />
+                  :
+                  <Home
+                    baseBackEndUrl={baseBackEndUrl}
+                    authToken={authToken}
+                    url={ENDPOINTS.popular.url}
+                    profileInfo={profileInfo}
+
+                    setActiveTab={setActiveTab}
+                    fetchAndUpdate={fetchAndUpdate}
+                  />
         }
 
-
-        {petitions !== null?
-          <PetitionListing
-            baseBackEndUrl={baseBackEndUrl}
-
-            authToken={authToken}
-            petitions={petitions}
-            lastFetchedURL={lastFetchedURL}
-            setPetitions={setPetitions}
-            nextPageToken={nextPageToken}
-            setNextPageToken={setNextPageToken}
-            setError={setError}
-
-            fetchAndUpdate={fetchAndUpdate}
-            reset={reset}
-          />
-          :
-          <React.Fragment />
-        }
       </div>
     </React.Fragment>
   )

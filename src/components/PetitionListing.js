@@ -1,17 +1,39 @@
-import React, {useState} from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { Button, Card, Icon } from 'semantic-ui-react'
 
-import PetitionView from './PetitionView'
+import PetitionCard from './PetitionCard'
 
 const PetitionListing = (props) => {
 
-    const [petitionId, setPetitionId] = useState('')
+    const [petitions, setPetitions] = useState([])
+
+    useEffect(async () => {
+        await props.fetchAndUpdate(props.url, setPetitions)
+    }, [])
 
     const updateNextTokenURL = () => {
+        props.setLastPageToken(props.nextPageToken)
+
         let url = new URL(props.lastFetchedURL)
         let search_params = url.searchParams
         search_params.set('next', props.nextPageToken)
+        url.search = search_params.toString()
+        url = url.toString()
+        console.log('last here ', props.lastPageToken);
+        return url
+    }
+
+    const updateLastTokenURL = () => {
+        props.setLastPageToken(props.nextPageToken)
+
+        let url = new URL(props.lastFetchedURL)
+        let search_params = url.searchParams
+        if (props.lastPageToken !== '') {
+            search_params.set('next', props.lastPageToken)
+        } else {
+            search_params.delete("next")
+        }
         url.search = search_params.toString()
         url = url.toString()
         return url
@@ -19,45 +41,45 @@ const PetitionListing = (props) => {
 
     return (
         <React.Fragment>
-            {petitionId !== ''?
-                <PetitionView
-                    baseBackEndUrl={props.baseBackEndUrl}
-                    authToken={props.authToken}
-                    petitionId={petitionId}
-                    setPetitionId={setPetitionId}
-                    setError={props.setError}
-                />
-            :
-                props.petitions.length?
-                    <React.Fragment>
-                        <Card.Group>
-                            {props.petitions.map(petition => {
-                                return  <Card
-                                            key={petition.key.name}
-                                            onClick={() => {setPetitionId(petition.key.name)}}
-                                        >
-                                            <Card.Content>
-                                                <Card.Header>{petition.properties.name}</Card.Header>
-                                            </Card.Content>
-                                        </Card>
-                            })}
-                        </Card.Group>
-                        {props.nextPageToken !== ''?
-                            <Button
-                                icon
-                                labelPosition='right'
-                                onClick={() => {props.fetchAndUpdate(updateNextTokenURL())}}
-                            >
-                                Next
-                                <Icon name='right arrow' />
-                            </Button>
-                            :
-                            <div/>
-                        }
+            <h1>{props.title}</h1>
+            {petitions.length ?
+                <React.Fragment>
+                    <Card.Group itemsPerRow={4} centered>
+                        {petitions.map(pet => {
+                            return <PetitionCard
+                                petition={pet}
+                                {...props}
+                            />
+                        })}
+                    </Card.Group>
+                    {props.nextPageToken !== '' ?
+                        <Button
+                            icon
+                            labelPosition='right'
+                            onClick={() => { props.fetchAndUpdate(updateNextTokenURL(), setPetitions) }}
+                        >
+                            Next
+                            <Icon name='right arrow' />
+                        </Button>
+                        :
+                        <div />
+                    }
+                    {props.lastPageToken !== '' ?
+                        <Button
+                            icon
+                            labelPosition='left'
+                            onClick={() => { props.fetchAndUpdate(updateLastTokenURL(), setPetitions) }}
+                        >
+                            Last
+                            <Icon name='left arrow' />
+                        </Button>
+                        :
+                        <div />
+                    }
 
-                    </React.Fragment>
+                </React.Fragment>
                 :
-                    <p>No petitions found sorry :/</p>
+                <p>Pas de pétitions trouvées :/</p>
             }
         </React.Fragment>
     )

@@ -28,8 +28,16 @@ header{
   text-align: center;
   place-content: center;
   margin: auto !important;
-  margin-top: 40px;
   font-family: system-ui, sans-serif;
   background-color: #F2E9DE;
   z-index: 2;
+  padding-top: 60px;
+}
+
+#content *{
+  margin: auto !important;
+}
+
+#content .card{
+  margin: 10px !important;
 }

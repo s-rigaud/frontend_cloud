@@ -1,8 +1,6 @@
-import React, {useEffect, useState} from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { Button, Divider, Form, Popup, Icon, Label } from 'semantic-ui-react'
-
-import PetitionView from './PetitionView'
 
 const PetitionCreator = (props) => {
 
@@ -14,13 +12,12 @@ const PetitionCreator = (props) => {
     const [petitionId, setPetitionId] = useState('')
 
     const formatTags = (responseTags) => {
-        console.log(responseTags)
         setAvailableTags(responseTags.map(tag => {
             return { key: tag, text: `#${tag}`, value: tag }
         }))
     }
 
-    useEffect(async() => await props.getTagList(formatTags), [])
+    useEffect(async () => await props.getTagList(formatTags), [])
 
     const clearFormFields = () => {
         setName('')
@@ -33,38 +30,31 @@ const PetitionCreator = (props) => {
     }
 
     const requestCreatePetition = () => {
-        if(isFormValid()){
+        if (isFormValid()) {
             console.log(name, content)
             setLoading(true)
-            fetch(`${props.baseBackEndUrl}/petitions`, {
+            fetch(props.url, {
                 method: 'POST',
                 headers: new Headers({
                     'Authorization': `Bearer ${props.authToken}`,
                     'Content-Type': 'application/json'
                 }),
-                body: JSON.stringify({'name': name, 'body': content, 'tags': tags})
+                body: JSON.stringify({ 'name': name, 'body': content, 'tags': tags })
             })
-            .then(res => res.json())
-            .then(json => {
-                console.log(json)
-                clearFormFields()
-                setLoading(false)
-                setPetitionId(json.key.name)
-            })
+                .then(res => res.json())
+                .then(json => {
+                    console.log(json)
+                    clearFormFields()
+                    props.setActiveTab('Home')
+                })
         }
     }
 
     return (
         <React.Fragment>
-            {petitionId !== ''?
-                <PetitionView
-                    baseBackEndUrl={props.baseBackEndUrl}
-                    authToken={props.authToken}
-                    petitionId={petitionId}
-                    setPetitionId={setPetitionId}
-                    setError={props.setError}
-                />
-            :
+            {props.authToken === '' ?
+                <p>Connectez vous d'abord avant de pouvoir créer une nouvelle pétition</p>
+                :
                 <Form size='large'>
                     <Form.Input
                         autoFocus
@@ -93,41 +83,42 @@ const PetitionCreator = (props) => {
                         label='Add tags'
                         placeholder='Cookies, NotEnough, ...'
                         options={availableTags}
-                        onChange={(e, {value}) => {if(!tags.includes(value)) setTags(tags => [...tags, value])}}
+                        onChange={(e, { value }) => { if (!tags.includes(value)) setTags(tags => [...tags, value]) }}
                     />
 
                     {tags.map(tag => {
                         return (
-                        <Label key={`#${tag}`}>
-                            {`#${tag}`}
-                            <Icon
-                                name='delete'
-                                key={tag}
-                                onClick={() => setTags(tags => tags.filter(
-                                    currTag => currTag !== tag
-                                ))}
-                            />
-                        </Label>
+                            <Label key={`#${tag}`}>
+                                {`#${tag}`}
+                                <Icon
+                                    name='delete'
+                                    key={tag}
+                                    onClick={() => setTags(tags => tags.filter(
+                                        currTag => currTag !== tag
+                                    ))}
+                                />
+                            </Label>
                         )
                     })}
 
                     <Divider />
 
                     <Button
-                        color={loading || !isFormValid()? 'grey' : 'green'}
+                        color={loading || !isFormValid() ? 'grey' : 'green'}
                         loading={loading}
                         onClick={requestCreatePetition}
                     >
                         Submit petition
                     </Button>
                     <Popup
-                        content='Add petition so millon users can sign it and change the world'
+                        content="Ajouter une pétiton pour qu'elle soit signée par des millions de personnes"
                         trigger={<Button icon='question circle' />}
                     />
                 </Form>
             }
+
         </React.Fragment>
-  )
+    )
 }
 
 export default PetitionCreator

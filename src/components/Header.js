@@ -1,27 +1,23 @@
-import {useState} from 'react'
+import React from 'react'
 
 import { GoogleLogin } from 'react-google-login'
-import { Button, Icon, Image } from 'semantic-ui-react'
+import { Button, Icon, Image, Input } from 'semantic-ui-react'
 
 // Main header of the page
 // It only display usefull infos
 const Header = (props) => {
 
-    const [name, setName] = useState('')
-    const [profileURL, setProfileURL] = useState('')
-
     const responseGoogleSuccess = (json) => {
-        setName(json.profileObj.name)
-        setProfileURL(json.profileObj.imageUrl)
         props.setAuthToken(json.tokenObj.access_token)
+        props.setProfileInfo(json.profileObj)
     }
 
     const responseGoogleFailure = (response) => {
-        alert(response)
+        console.log(response)
     }
 
     const disconnect = () => {
-        setName('')
+        props.setProfileInfo('')
         props.setAuthToken('')
     }
 
@@ -32,42 +28,55 @@ const Header = (props) => {
             >
                 <div className='container d-flex justify-content-between'>
                     <h5
-                        style={{ color: 'white', margin:'5px', cursor: 'pointer'}}
-                        onClick={props.reset}
+                        style={{ color: 'white', margin: '5px', cursor: 'pointer' }}
+                        onClick={() => props.setActiveTab("Home")}
                         className='home-link'
                     >🍹 Home</h5>
 
-                    {name !== ''?
-                    <Button animated='vertical' onClick={disconnect} style={{padding: '0'}} >
-                        <Button.Content
-                            hidden
-                        >
-                            <Icon name='close' />
-                            Disconnect
-                        </Button.Content>
-                        <Button.Content visible style={{display: 'inline-flex'}}>
-                            <Image
-                                alt='Profile pic'
-                                size='mini'
-                                src={profileURL}
-                                style={{marginRight: '5px'}}
-                                //onFailure={() => console.log('fail loading Google picture')}
-                            />
-                            <p style={{margin: 'auto', fontFamily: 'Roboto, sans-serif', fontWeight: '500'}}>{name}</p>
-                        </Button.Content>
-                    </Button>
-                    :
-                    <GoogleLogin
-                        clientId='783652474514-hsrkuk75ikl453pu5fq2nf0m43q3qcsi.apps.googleusercontent.com'
-                        buttonText='Login'
-                        onSuccess={responseGoogleSuccess}
-                        onFailure={responseGoogleFailure}
-                        cookiePolicy={'single_host_origin'}
+                    <Input
+                        action={{ icon: 'search' }}
+                        placeholder='Search...'
+                        onChange={(e, data) => { props.updateSearchTag(data.value); }}
+                    />
+
+                    {props.profileInfo !== "" && props.profileInfo.name !== '' ?
+                        <React.Fragment>
+                            <Button
+                                animated='vertical'
+                                onClick={() => props.setActiveTab("Profile")}
+                                style={{ padding: 0, position: "fixed", right: "200px" }}
+                            >
+                                <Button.Content
+                                    hidden
+                                >
+                                    <Icon name='user' />
+                                    Profile
+                                </Button.Content>
+                                <Button.Content visible style={{ display: 'inline-flex' }}>
+                                    <Image
+                                        alt='Profile pic'
+                                        size='mini'
+                                        src={props.profileInfo.imageUrl}
+                                        style={{ marginRight: '5px' }}
+                                    //onFailure={() => console.log('fail loading Google picture')}
+                                    />
+                                    <p style={{ margin: 'auto', fontFamily: 'Roboto, sans-serif', fontWeight: '500' }}>{props.profileInfo.name}</p>
+                                </Button.Content>
+                            </Button>
+                            <Button color='red' onClick={disconnect} style={{ padding: 11 }}>X</Button>
+                        </React.Fragment>
+                        :
+                        <GoogleLogin
+                            clientId='783652474514-hsrkuk75ikl453pu5fq2nf0m43q3qcsi.apps.googleusercontent.com'
+                            buttonText='Login'
+                            onSuccess={responseGoogleSuccess}
+                            onFailure={responseGoogleFailure}
+                            cookiePolicy='single_host_origin'
                         /*accessType='offline'
                         responseType='code'
                         approvalPrompt='force'
                         prompt='consent'*/
-                    />
+                        />
                     }
                 </div>
             </div>
