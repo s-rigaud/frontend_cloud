@@ -35,7 +35,7 @@ const Header = (props) => {
 
                     <Input
                         action={{ icon: 'search' }}
-                        placeholder='Search...'
+                        placeholder='Chercher...'
                         onChange={(e, data) => { props.updateSearchTag(data.value); }}
                     />
 
@@ -68,7 +68,7 @@ const Header = (props) => {
                         :
                         <GoogleLogin
                             clientId='783652474514-hsrkuk75ikl453pu5fq2nf0m43q3qcsi.apps.googleusercontent.com'
-                            buttonText='Login'
+                            buttonText='Connexion'
                             onSuccess={responseGoogleSuccess}
                             onFailure={responseGoogleFailure}
                             cookiePolicy='single_host_origin'

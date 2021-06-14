@@ -9,7 +9,6 @@ const PetitionCreator = (props) => {
     const [tags, setTags] = useState([])
     const [availableTags, setAvailableTags] = useState([])
     const [loading, setLoading] = useState(false)
-    const [petitionId, setPetitionId] = useState('')
 
     const formatTags = (responseTags) => {
         setAvailableTags(responseTags.map(tag => {
@@ -17,7 +16,22 @@ const PetitionCreator = (props) => {
         }))
     }
 
-    useEffect(async () => await props.getTagList(formatTags), [])
+    const getTagList = async () => {
+
+        fetch(`${props.baseBackEndUrl}/petitions/tags/list`, {
+            headers: new Headers({
+                'Authorization': `Bearer ${props.authToken}`,
+                'Content-Type': 'application/json'
+            })
+        })
+            .then(res => res.json())
+            .then(json => {
+                formatTags(json.items)
+            })
+            .catch((error) => console.log(error))
+    }
+
+    useEffect(() => getTagList(formatTags), [])
 
     const clearFormFields = () => {
         setName('')
@@ -60,21 +74,23 @@ const PetitionCreator = (props) => {
                         autoFocus
                         required
                         fluid
-                        label='Petition Name'
-                        placeholder='Make more cookie ...'
+                        label='Titre de la pétition'
+                        placeholder="Pour l'indépendance dela Palestine ..."
                         value={name}
                         onChange={(e) => {
                             setName(e.target.value)
                         }}
+                        style={{ width: '350px' }}
                     />
                     <Divider />
 
                     <Form.TextArea
                         label='Content'
                         required
-                        placeholder='We definitely do not make enough cookies a year !'
+                        placeholder="Et pourquoi pas ?"
                         value={content}
                         onChange={e => setContent(e.target.value)}
+                        style={{ height: '150px' }}
                     />
 
                     <Divider />

@@ -15,5 +15,5 @@ Implement search bar
 
 ## Backend
 Update already signed backend for collection
-Fix vote crash
+Fix sign crash
 Update openai file
