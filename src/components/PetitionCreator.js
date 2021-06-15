@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 
 import { Button, Divider, Form, Popup, Icon, Label } from 'semantic-ui-react'
 
@@ -6,32 +6,10 @@ const PetitionCreator = (props) => {
 
     const [name, setName] = useState('')
     const [content, setContent] = useState('')
+
+    const [currentTag, setCurrentTag] = useState('')
     const [tags, setTags] = useState([])
-    const [availableTags, setAvailableTags] = useState([])
     const [loading, setLoading] = useState(false)
-
-    const formatTags = (responseTags) => {
-        setAvailableTags(responseTags.map(tag => {
-            return { key: tag, text: `#${tag}`, value: tag }
-        }))
-    }
-
-    const getTagList = async () => {
-
-        fetch(`${props.baseBackEndUrl}/petitions/tags/list`, {
-            headers: new Headers({
-                'Authorization': `Bearer ${props.authToken}`,
-                'Content-Type': 'application/json'
-            })
-        })
-            .then(res => res.json())
-            .then(json => {
-                formatTags(json.items)
-            })
-            .catch((error) => console.log(error))
-    }
-
-    useEffect(() => getTagList(formatTags), [])
 
     const clearFormFields = () => {
         setName('')
@@ -64,6 +42,18 @@ const PetitionCreator = (props) => {
         }
     }
 
+    const handleTagInput = (value) => {
+        if (value.slice(-1) === "\n") {
+            const tagString = value.slice(0, -1).replaceAll("#", "")
+            if (!tags.includes(tagString)) {
+                setTags(tags => [...tags, tagString])
+            }
+            setCurrentTag('')
+        } else {
+            setCurrentTag(value)
+        }
+    }
+
     return (
         <React.Fragment>
             {props.authToken === '' ?
@@ -75,7 +65,7 @@ const PetitionCreator = (props) => {
                         required
                         fluid
                         label='Titre de la pétition'
-                        placeholder="Pour l'indépendance dela Palestine ..."
+                        placeholder="Pour l'indépendance de la Palestine ..."
                         value={name}
                         onChange={(e) => {
                             setName(e.target.value)
@@ -94,17 +84,16 @@ const PetitionCreator = (props) => {
                     />
 
                     <Divider />
-
-                    <Form.Select
+                    <Form.TextArea
                         label='Add tags'
-                        placeholder='Cookies, NotEnough, ...'
-                        options={availableTags}
-                        onChange={(e, { value }) => { if (!tags.includes(value)) setTags(tags => [...tags, value]) }}
+                        placeholder='#palestine, #free, ...'
+                        value={currentTag}
+                        onChange={(e, { value }) => handleTagInput(value)}
                     />
 
                     {tags.map(tag => {
                         return (
-                            <Label key={`#${tag}`}>
+                            <Label key={`#${tag}`} color='orange'>
                                 {`#${tag}`}
                                 <Icon
                                     name='delete'
@@ -127,6 +116,8 @@ const PetitionCreator = (props) => {
                         Submit petition
                     </Button>
                     <Popup
+                        mouseEnterDelay={500}
+                        mouseLeaveDelay={500}
                         content="Ajouter une pétiton pour qu'elle soit signée par des millions de personnes"
                         trigger={<Button icon='question circle' />}
                     />

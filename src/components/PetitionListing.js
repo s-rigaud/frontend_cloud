@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { Button, Card, Icon } from 'semantic-ui-react'
+import { Button, Card, Icon, Popup } from 'semantic-ui-react'
 
 import PetitionCard from './PetitionCard'
 
@@ -53,11 +53,11 @@ const PetitionListing = (props) => {
                 // We suppose we only get 10 results by page here
                 if (json.hasOwnProperty('nextPageToken') && itemCounts > 9) {
                     setPageNumber(newPageNumber)
-                    console.log(newPageNumber);
+                    console.log(newPageNumber)
                     let updatedPageTokenList = pageTokens.slice()
                     updatedPageTokenList[newPageNumber] = json.nextPageToken
                     setPageTokens(updatedPageTokenList)
-                    console.log('updated');
+                    console.log('updated')
                 }
 
             })
@@ -92,8 +92,16 @@ const PetitionListing = (props) => {
 
     return (
         <React.Fragment>
-            {console.log(pageTokens)}
-            <h1>{props.title}</h1>
+            <div style={{ display: 'inline-block' }}>
+                <h1 style={{ display: 'inline-block' }}>{props.title}</h1>
+                <Popup
+                    mouseEnterDelay={500}
+                    mouseLeaveDelay={500}
+                    content={props.description}
+                    trigger={<Button icon='question circle' />}
+                />
+            </div>
+
             {petitions.length ?
                 <React.Fragment>
                     <Card.Group itemsPerRow={getRowSize()} centered>

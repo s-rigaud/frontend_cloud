@@ -4,7 +4,6 @@ import { GoogleLogin } from 'react-google-login'
 import { Button, Icon, Image, Input } from 'semantic-ui-react'
 
 // Main header of the page
-// It only display usefull infos
 const Header = (props) => {
 
     const responseGoogleSuccess = (json) => {
@@ -31,12 +30,12 @@ const Header = (props) => {
                         style={{ color: 'white', margin: '5px', cursor: 'pointer' }}
                         onClick={() => props.setActiveTab("Home")}
                         className='home-link'
-                    >🍹 Home</h5>
+                    >📝 Accueil</h5>
 
                     <Input
                         action={{ icon: 'search' }}
-                        placeholder='Chercher...'
-                        onChange={(e, data) => { props.updateSearchTag(data.value); }}
+                        placeholder='#0 Nante'
+                        onChange={(e, data) => props.updateSearchTag(data.value)}
                     />
 
                     {props.profileInfo !== "" && props.profileInfo.name !== '' ?

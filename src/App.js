@@ -1,6 +1,6 @@
 import './App.css'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 import { Button, Message } from 'semantic-ui-react'
 
@@ -34,7 +34,7 @@ function App() {
       url: `${baseBackEndUrl}/petiton/filter`,
     },
     popular: {
-      url: `${baseBackEndUrl}/petitions/top10`,
+      url: `${baseBackEndUrl}/petitions/top100`,
     },
     signed: {
       url: `${baseBackEndUrl}/me/signature`,
@@ -48,6 +48,27 @@ function App() {
     } else if (string.length === 0) {
       setActiveTab("Home")
     }
+  }
+
+  const getUrlToFilter = () => {
+    let url = `${baseBackEndUrl}/petitions/filter`
+    /* TODO update this ugly manual update
+       Hard time trying to use URL as in PetitionListing
+    */
+    const words = filterWords.split(' ')
+    const tags = words.filter(w => w.slice(0, 1) == '#' && w.length > 1)
+    const title = words.filter(w => w.slice(0, 1) != '#').join(' ').trim()
+
+    for (let i = 0; i < tags.length; i++) {
+      url += (i === 0 ? '?' : '&') + 'tag=' + tags[i].slice(1)
+    }
+    if (title != "" && tags.length)
+      url += "&title=" + title
+    else if (title != "")
+      url += "?title=" + title
+
+    console.log(url)
+    return url
   }
 
   const reset = () => {
@@ -104,6 +125,7 @@ function App() {
 
                 url={ENDPOINTS.created.url}
                 title="Pétitions que j'ai créé"
+                description="Triées de la plus récente à la plus ancienne"
                 profileInfo={profileInfo}
 
               />
@@ -115,6 +137,7 @@ function App() {
 
                   url={ENDPOINTS.signed.url}
                   title="Pétitions que j'ai signé"
+                  description="Triées de la plus récente à la plus ancienne"
                   profileInfo={profileInfo}
                 />
                 :
@@ -123,8 +146,9 @@ function App() {
                     baseBackEndUrl={baseBackEndUrl}
                     authToken={authToken}
 
-                    url={`${ENDPOINTS.filtered.url}?text=${filterWords}`}
+                    url={getUrlToFilter()}
                     title="Pétitions filtrées"
+                    description="Triées de la plus récente à la plus ancienne"
                     profileInfo={profileInfo}
                   />
                   :
@@ -139,6 +163,7 @@ function App() {
                       url={ENDPOINTS.popular.url}
 
                       title="Top 100 des pétitions"
+                      description="Triées par nombre de signatures, puis de la plus récente à la plus ancienne"
                       profileInfo={profileInfo}
                     />
                   </React.Fragment>

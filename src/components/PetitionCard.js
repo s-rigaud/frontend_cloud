@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 
-import { Card, Image, Button } from 'semantic-ui-react'
+import { Card, Image, Button, Label } from 'semantic-ui-react'
 
 const PetitionCard = (props) => {
 
@@ -11,7 +11,7 @@ const PetitionCard = (props) => {
     }, [props])
 
     const sign = (petitionId) => {
-        console.log(`${props.baseBackEndUrl}/petition?id=${petitionId}`);
+        console.log(`${props.baseBackEndUrl}/petition?id=${petitionId}`)
         fetch(
             `${props.baseBackEndUrl}/petition?id=${petitionId}`, {
             method: 'PUT',
@@ -23,7 +23,7 @@ const PetitionCard = (props) => {
         )
             .then(res => res.json())
             .then(json => {
-                console.log(json);
+                console.log(json)
                 const pet = [
                     json.key.name,
                     json.properties.content,
@@ -51,30 +51,37 @@ const PetitionCard = (props) => {
     }
 
     function timeDiffCalc(dateFuture, dateNow) {
-        let diffInMilliSeconds = Math.abs(dateFuture - dateNow) / 1000;
+        let diffInMilliSeconds = Math.abs(dateFuture - dateNow) / 1000
 
         // calculate days
-        const days = Math.floor(diffInMilliSeconds / 86400);
-        diffInMilliSeconds -= days * 86400;
+        const days = Math.floor(diffInMilliSeconds / 86400)
+        diffInMilliSeconds -= days * 86400
 
         // calculate hours
-        const hours = Math.floor(diffInMilliSeconds / 3600) % 24;
-        diffInMilliSeconds -= hours * 3600;
+        const hours = Math.floor(diffInMilliSeconds / 3600) % 24
+        diffInMilliSeconds -= hours * 3600
 
         // calculate minutes
-        const minutes = Math.floor(diffInMilliSeconds / 60) % 60;
-        diffInMilliSeconds -= minutes * 60;
+        const minutes = Math.floor(diffInMilliSeconds / 60) % 60
+        diffInMilliSeconds -= minutes * 60
 
-        let difference = '';
+        let difference = ''
         if (days > 0)
-            difference += (days === 1) ? `${days} jour, ` : `${days} jours, `;
+            difference += (days === 1) ? `${days} jour, ` : `${days} jours, `
 
         if (hours > 0)
-            difference += (hours === 0 || hours === 1) ? `${hours} heure et ` : `${hours} heure et `;
+            difference += (hours === 0 || hours === 1) ? `${hours} heure et ` : `${hours} heure et `
 
-        difference += (minutes === 0 || hours === 1) ? `${minutes} minutes` : `${minutes} minutes`;
+        difference += (minutes === 0 || hours === 1) ? `${minutes} minutes` : `${minutes} minutes`
 
-        return difference;
+        return difference
+    }
+
+    const getTagsOrEmptyList = (tags) => {
+        // Json return from google could be either undefined / object {"value": ""tag""} / ["tag1", "tag2"]
+        if(tags !== undefined && !isNaN(tags.length)) return tags // list
+        if(tags !== undefined) return [parseInt(tags.value.replace('"', ''))] // object
+        return []
     }
 
     return <Card key={petition[0]} raised>
@@ -89,6 +96,13 @@ const PetitionCard = (props) => {
                 {`Créée il y a ${timeDiffCalc(Date.now(), new Date(petition[2]))} par ${getProfileName(petition[4])}`}
             </Card.Meta>
             <Card.Description>{petition[1]}</Card.Description>
+            {getTagsOrEmptyList(petition[6]).map(tag => {
+                return (
+                    <Label key={`#${tag}`} color='orange'>
+                        {`#${tag}`}
+                    </Label>
+                )
+            })}
         </Card.Content>
 
         <Card.Content extra>
